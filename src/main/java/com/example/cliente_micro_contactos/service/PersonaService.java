@@ -7,4 +7,6 @@ import java.util.List;
 public interface PersonaService {
 
     List<PersonaDTO> consultAll();
+
+    PersonaDTO consultOne(String email);
 }

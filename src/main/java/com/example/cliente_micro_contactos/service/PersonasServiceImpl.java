@@ -28,20 +28,49 @@ public class PersonasServiceImpl implements PersonaService{
             ResponseEntity<GeneralResponseMicro> response = template.exchange(url + "/getAllContacto", HttpMethod.GET, null, GeneralResponseMicro.class);
             GeneralResponseMicro responseBody = response.getBody();
 
-            if (responseBody != null && responseBody.getObject() != null) {
-                Gson gson = new Gson();
-                String json = gson.toJson(responseBody.getObject());
-                List<PersonaDTO> personas = List.of(gson.fromJson(json, PersonaDTO[].class));
-                log.info(".............::::: Respuesta del microservicio :::::.............");
-                log.info(".............:::::\n" + personas + "\n:::::.............");
-                return personas;
+            if (!validateResponse(response)) {
+                log.info(".............::::: no hubo nada en la respuesta :::::.............");
+                return null;
             }
-            log.info(".............::::: no hubo nada en la respuesta :::::.............");
-            return null;
+            Gson gson = new Gson();
+            String json = gson.toJson(responseBody.getObject());
+            List<PersonaDTO> personas = List.of(gson.fromJson(json, PersonaDTO[].class));
+            log.info(".............::::: Respuesta del microservicio :::::.............");
+            log.info(".............:::::\n" + personas + "\n:::::.............");
+            return personas;
+
         }catch (Exception e) {
             log.info(".............::::: error en el servicio :::::.............");
             log.error("Error in consultAll", e);
         }
         return null;
     }
+
+    @Override
+    public PersonaDTO consultOne(String email) {
+       try{
+           ResponseEntity<GeneralResponseMicro> response = template.exchange(url + "/getContacto?email=" + email, HttpMethod.GET, null, GeneralResponseMicro.class);
+           GeneralResponseMicro responseBody = response.getBody();
+           if (!validateResponse(response)) {
+               log.info(".............::::: No se encontro el registo :::::.............");
+               return null;
+           }
+           Gson gson = new Gson();
+           String json = gson.toJson(responseBody.getObject());
+           PersonaDTO persona = gson.fromJson(json, PersonaDTO.class);
+           log.info(".............::::: Respuesta del microservicio :::::.............");
+           log.info(".............:::::\n" + persona + "\n:::::.............");
+           return persona;
+       }catch (Exception e){
+              log.info(".............::::: error en el servicio :::::.............");
+              log.error("Error in consultOne", e);
+              return null;
+       }
+    }
+
+    protected Boolean validateResponse(ResponseEntity<GeneralResponseMicro> response) {
+        return response != null && response.getBody() != null && response.getBody().getObject() != null;
+    }
 }
+
+
